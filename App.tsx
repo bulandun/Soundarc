@@ -23,22 +23,10 @@ const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'desc' | 'tech' | 'admin' | 'struct'>('desc');
   const [editingSegmentId, setEditingSegmentId] = useState<string | null>(null);
   const [isNarrating, setIsNarrating] = useState(false);
-  
-  // SECRETS MANAGEMENT (Maintained in background, UI hidden)
-  const [elevenLabsApiKey, setElevenLabsApiKey] = useState<string>(() => 
-    localStorage.getItem('ELEVENLABS_API_KEY') || 'sk_b40b66eb010a77926a334087ff63df16995af7a8bad201fc'
-  );
-
-  useEffect(() => {
-    localStorage.setItem('ELEVENLABS_API_KEY', elevenLabsApiKey);
-  }, [elevenLabsApiKey]);
 
   const audioRef = useRef<HTMLAudioElement>(null);
   const ttsAudioCtx = useRef<AudioContext | null>(null);
   
-  const envKeyAvailable = !!(process.env as any).ELEVENLABS_API_KEY;
-  const elevenLabsActive = envKeyAvailable || (elevenLabsApiKey && elevenLabsApiKey.startsWith('sk_'));
-
   const resetApp = () => {
     setState(AnalysisState.IDLE);
     setItem(null);
@@ -113,7 +101,7 @@ const App: React.FC = () => {
       setItem(initialItem);
       
       setState(AnalysisState.TRANSCRIBING);
-      const transcript = await transcribeAudio(blob, elevenLabsApiKey);
+      const transcript = await transcribeAudio(blob);
 
       setItem(prev => prev ? ({
         ...prev,
@@ -186,13 +174,13 @@ const App: React.FC = () => {
     if (!item?.descriptive.description || isNarrating) return;
     setIsNarrating(true);
     try {
-      const base64Audio = await generateArchivalNarrative(item.descriptive.description, elevenLabsApiKey);
+      const base64Audio = await generateArchivalNarrative(item.descriptive.description);
       if (!ttsAudioCtx.current) {
         ttsAudioCtx.current = new (window.AudioContext || (window as any).webkitAudioContext)();
       }
       const ctx = ttsAudioCtx.current;
       const audioData = decodeBase64(base64Audio);
-      const audioBuffer = await decodeAudioBuffer(audioData, ctx, elevenLabsActive ? 44100 : 24000, 1);
+      const audioBuffer = await decodeAudioBuffer(audioData, ctx, 44100, 1);
       
       const source = ctx.createBufferSource();
       source.buffer = audioBuffer;
