@@ -1,0 +1,7 @@
+{
+  "name": "EchoArchive Semantic Indexer",
+  "description": "An archive-grade semantic audio indexing layer that uses AI to automatically classify recordings, detect instruments, and generate timestamped searchable metadata for long-form archival recordings.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
